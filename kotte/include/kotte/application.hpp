@@ -17,6 +17,13 @@
 
 namespace kotte
 {
+
+    enum class GameState {
+        playing,
+        won,
+        lost
+    };
+
     struct CollisionDiagnostics final {
         std::size_t enemy_updates = 0;
         std::size_t movement_attempts = 0;
@@ -29,6 +36,8 @@ namespace kotte
         std::size_t boundary_blocks = 0;
         std::size_t blocked_moves = 0;
         std::size_t enemy_turns = 0;
+
+        std::size_t player_hits = 0;
     };
 
     class Application final{
@@ -124,8 +133,11 @@ namespace kotte
         static constexpr float spatial_cell_size_ = tile_size_ * spatial_cell_tiles_;
         static constexpr float player_speed_ = 240.0f;
         static constexpr float enemy_speed_ = 80.0f;
+        static constexpr float player_damage_cooldown_seconds_ = 1.0f;
+        static constexpr std::size_t max_active_bombs_ = 2;
         static constexpr float bomb_fuse_seconds_ = 2.0f;
         static constexpr std::uint8_t bomb_blast_range_ = 3;
+        static constexpr std::uint8_t max_blast_range_ = 8;
         static constexpr float blast_effect_seconds_ = 0.35f;
         static constexpr Color background_color_{0x11, 0x22, 0x33, 0xff};
         static constexpr Color floor_colors_[3]{
@@ -139,6 +151,8 @@ namespace kotte
         static constexpr Color crate_color_{0xb0, 0x72, 0x3c, 0xff};
         static constexpr Color enemy_color_{0xd9, 0x4f, 0x70, 0xff};
         static constexpr Color wall_color_{0x78, 0x5f, 0x47, 0xff};
+        static constexpr Color blast_range_power_up_color_{0x39, 0xd3, 0x53, 0xff};
+        static constexpr Color shield_power_up_color_{0x5c, 0xe1, 0xe6, 0xff};
 
         Window window_; // Constructed first, destroyed last.
         Camera camera_;
@@ -158,5 +172,31 @@ namespace kotte
         std::uint64_t seed_;
         EntityHandle player_handle_;
         bool exit_requested_ = false;
+
+        GameState current_game_state_ = {};
+
+        void change_game_state(GameState next) noexcept;
+
+        void reset_gameplay() noexcept;
+
+        int player_health_ = 3;
+        bool player_shielded_ = false;
+        float player_damage_cooldown_ = 0.0f;
+        float shield_duration_remaining_ = 5.0f;
+        int shield_power_up_count_ = 0;
+        int player_score_ = 0;
+        int score_per_enemy_ = 50;
+        int win_score_ = 10000;
+        std::uint8_t player_blast_range_ = bomb_blast_range_;
+        static constexpr float bomb_slide_speed_ = 240.0f;
+
+        void update_health(float delta_time) noexcept;
+        void win_check() noexcept;
+
+        void collect_power_ups();
+        void collect_shield_power_ups();
+        void activate_shield() noexcept;
+        void update_shield(float delta_time) noexcept;
+        void kick_bomb(EntityHandle bomb_handle, CardinalDirection direction) noexcept;
     };
 }
