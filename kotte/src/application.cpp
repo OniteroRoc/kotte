@@ -384,6 +384,30 @@ namespace kotte
                 continue;
             }
 
+            const float tile_extent = static_cast<float>(tile_size_);
+            const int request_column = static_cast<int>(
+                std::floor(request.world_position.x / tile_extent));
+            const int request_row = static_cast<int>(
+                std::floor(request.world_position.y / tile_extent));
+            const bool tile_is_occupied = std::ranges::any_of(
+                active_bomb_handles_,
+                [this, request_column, request_row, tile_extent](
+                    EntityHandle bomb_handle){
+                    const Entity* bomb = entities_.try_get(bomb_handle);
+                    if(bomb == nullptr || bomb->kind != EntityKind::bomb){
+                        return false;
+                    }
+
+                    const int bomb_column = static_cast<int>(
+                        std::floor(bomb->world_position.x / tile_extent));
+                    const int bomb_row = static_cast<int>(
+                        std::floor(bomb->world_position.y / tile_extent));
+                    return bomb_column == request_column && bomb_row == request_row;
+                });
+            if(tile_is_occupied){
+                continue;
+            }
+
             const Entity bomb{
                 .kind = EntityKind::bomb,
                 .world_position = request.world_position,
