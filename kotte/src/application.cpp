@@ -1002,6 +1002,8 @@ namespace kotte
         shield_power_up_count_ = 0;
         player_blast_range_ = bomb_blast_range_;
         player_score_ = 0;
+        random_ = Random{seed_};
+        map_ = make_room(200, 120, random_);
         populate_entities();
         initialize_enemies();
     }
