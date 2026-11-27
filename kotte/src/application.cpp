@@ -34,7 +34,7 @@ namespace kotte
         }
     }
 
-    void Application::run_frame(float delta_time){
+    void Application::run_frame(float delta_time) {
         // Full frame order:
         // 1. Reset frame-local state.
         // 2. Translate input into gameplay intent.
@@ -47,6 +47,7 @@ namespace kotte
         //
         // Keeping one call site per phase makes event lifetime and mutation
         // boundaries visible as the simulation grows.
+
         begin_frame();
         collect_frame_actions();
         update_gameplay(delta_time);
@@ -107,6 +108,10 @@ namespace kotte
     }
 
     void Application::update_gameplay(float delta_time){
+        if (current_game_state_ != GameState::playing) {
+            return;
+        }
+
         // The player and every enemy are movers; each asks its own collision question.
         if (current_game_state_ == GameState::playing) {
             update_player(delta_time);
